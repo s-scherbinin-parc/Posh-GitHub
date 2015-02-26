@@ -13,7 +13,7 @@ function GetRemotes
   if ($matches -ne $null) { $matches.Clear() }
   $gitRemotes = git remote -v show 2> $null
 
-  $pattern = '^(.*)?\t.*github.com\/(.*)\/(.*) \((fetch|push)\)'
+  $pattern = '^(.*)?\t.*github.com[:\/](.*)\/(.*) \((fetch|push)\)'
   $gitRemotes |
     Select-String -Pattern $pattern -AllMatches |
     % {
@@ -380,13 +380,19 @@ function New-GitHubPullRequest
   {
     #try to sniff out the repo based on 'upstream'
     $remotes = GetRemotes
-    if (!($remotes.upstream))
+	
+	$remote = $remotes.upstream
+    if (!($remote))
     {
-      throw "No remote named 'upstream' defined, so cannot determine where to send pull"
+		$remote = $remotes.origin
     }
+	if (!($remote))
+	{
+		throw "No remote named 'upstream' or 'origin' defined, so cannot determine where to send pull"
+	}
 
-    $Owner = $remotes.upstream.owner
-    $Repository = $remotes.upstream.repository
+    $Owner = $remote.owner
+    $Repository = $remote.repository
   }
   elseif ([string]::IsNullOrEmpty($Owner) -or [string]::IsNullOrEmpty($Repository))
   {
@@ -396,7 +402,7 @@ function New-GitHubPullRequest
   if ([string]::IsNullOrEmpty($Head))
   {
     $localUser = git remote -v show |
-      ? { $_ -match 'origin\t.*github.com\/(.*)\/.* \((fetch|push)\)' } |
+      ? { $_ -match 'origin\t.*github.com[:\/](.*)\/.* \((fetch|push)\)' } |
       % { $matches[1] } |
       Select -First 1
 
