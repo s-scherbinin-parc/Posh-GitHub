@@ -437,7 +437,7 @@ function New-GitHubPullRequest
         "?access_token=${Env:\GITHUB_OAUTH_TOKEN}");
       Method = 'POST';
       ContentType = 'application/json';
-      Body = (ConvertTo-Json $postData -Compress);
+      Body = [System.Text.Encoding]::UTF8.GetBytes((ConvertTo-Json $postData -Compress));
     }
 
     $global:GITHUB_API_OUTPUT = Invoke-RestMethod @params
