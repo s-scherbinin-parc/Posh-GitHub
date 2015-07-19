@@ -380,13 +380,19 @@ function New-GitHubPullRequest
   {
     #try to sniff out the repo based on 'upstream'
     $remotes = GetRemotes
-    if (!($remotes.upstream))
+	
+	$remote = $remotes.upstream
+    if (!($remote))
     {
-      throw "No remote named 'upstream' defined, so cannot determine where to send pull"
+		$remote = $remotes.origin
     }
+	if (!($remote))
+	{
+		throw "No remote named 'upstream' or 'origin' defined, so cannot determine where to send pull"
+	}
 
-    $Owner = $remotes.upstream.owner
-    $Repository = $remotes.upstream.repository
+    $Owner = $remote.owner
+    $Repository = $remote.repository
   }
   elseif ([string]::IsNullOrEmpty($Owner) -or [string]::IsNullOrEmpty($Repository))
   {
